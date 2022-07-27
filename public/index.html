@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Global Gateway Capture Example</title>
+  <meta name="description" content="Mitek Systems Mobile Web Demo">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./css/index.css">
+  <link rel="stylesheet" href="./GlobalGatewayCapturePublic/css/GlobalGatewayCapture.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"
+    integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+</head>
+
+<style>
+</style>
+
+<body>
+  <script type='text/javascript' src="./GlobalGatewayCapturePublic/globalgateway-sdk.js"></script>
+  <script type='text/javascript' src="./GlobalGatewayCapturePublic/GlobalGatewayImageCapture.js"></script>
+  <div id="uiContainer">
+
+    <h1>Global Gateway Capture Web - Example</h1>
+
+    <h2>Auto/Manual Capture</h2>
+
+    &nbsp;
+    <select id="captureModeSelection">
+      <option value="Auto">Auto</option>
+      <option value="Manual">Manual</option>
+    </select>
+    &nbsp;
+    <select id="captureTypeSelection">
+      <option value="DocumentFront">Document (Front)</option>
+      <option value="DocumentBack">Document (Back)</option>
+      <option value="LivePhoto">Live Photo</option>
+      <option value="Passport">Passport</option>
+      <option value="GenericDocument">Generic Document</option>
+    </select>
+    &nbsp;
+    <select id="geoModeSelection">
+      <option value=true>Enable Geolocation Collection</option>
+      <option value=false>Disable Geolocation Collection</option>
+    </select>
+    &nbsp;
+    <br />
+    <br />
+    &nbsp;&nbsp;<button id="start-button" type="button" onclick="startCapture()">Capture</button>
+    <br />
+    <br />
+    <br />
+    <hr/>
+    &nbsp;
+    <h2 style="margin-top: 10px; margin-bottom: 0px;">Capture Result</h2>
+    <br />
+    <h3 id="globalGatewayError"></h3>
+      <div class="row">
+        <div class="column imageBox">
+          <img id="capturedFrontImage">
+          <p>Front Image</p>
+        </div>
+        <div class="column imageBox">
+          <img id="capturedBackImage">
+          <p>Back Image</p>
+        </div>
+        <div class="column imageBox">
+          <img id="capturedLiveImage">
+          <p>Live Photo</p>
+        </div>
+      </div>
+      <hr/>
+    </div>
+  </div>
+
+  <script>
+    var useCaptureButton = false; // Change this value if you'd like to use the button while capturing
+
+    var timeoutInMS = 15 * 1000;
+
+    var numRetry = 0;
+
+    function showError(error) {
+      if(error && error.length >0)
+      {
+        document.querySelector('#globalGatewayError').innerHTML = "Error code: " + error[0].code + " " + error[0].type;
+      }
+      else {
+        document.querySelector('#globalGatewayError').innerHTML = "Unable to capture";
+      }
+    }
+
+    function showfrontImage(result) {
+      document.querySelector('#globalGatewayError').innerHTML = "";
+      document.querySelector('#capturedFrontImage').src = result;
+    }
+
+    function showBackImage(result) {
+      document.querySelector('#globalGatewayError').innerHTML = "";
+      document.querySelector('#capturedBackImage').src = result;
+    }
+
+    function showLivePhoto(result) {
+      document.querySelector('#globalGatewayError').innerHTML = "";
+      document.querySelector('#capturedLiveImage').src = result;
+    }
+
+    function getDropDown(){
+      var dropDown = document.getElementById("captureModeSelection");
+      return dropDown.options[dropDown.selectedIndex].value == "Auto";
+    };
+
+    function startCapture(){
+      var geoDropdown = document.getElementById("geoModeSelection");
+      var shouldCollectGeo = geoDropdown.options[geoDropdown.selectedIndex].value;
+
+      var dropDown = document.getElementById("captureTypeSelection");
+      var selectedType = dropDown.options[dropDown.selectedIndex].value;
+      if ( selectedType == "DocumentFront") {
+        startDocumentCapture(shouldCollectGeo);
+      } else if ( selectedType == "DocumentBack") {
+        startDocumentBackCapture(shouldCollectGeo);
+      } else if ( selectedType == "LivePhoto") {
+        startSelfie(shouldCollectGeo);
+      } else if ( selectedType == "Passport") {
+        startPassport(shouldCollectGeo);
+      } else if ( selectedType == "GenericDocument") {
+        startGenericDocument(shouldCollectGeo);
+      }
+    }
+
+    var useCaptureButtonWithAutoOnly = (getDropDown()) ? useCaptureButton : false; // Do not modify this
+
+    function startDocumentCapture(shouldCollectGeo){
+      // Capture Driver Licence and ID Cards.
+      StartDocumentCapture('Starting Document Capture...', timeoutInMS, getDropDown(), showfrontImage, showError, useCaptureButtonWithAutoOnly, numRetry, shouldCollectGeo);
+    }
+    function startDocumentBackCapture(shouldCollectGeo){
+      // Capture Driver Licence and ID Cards.
+      StartDocumentCapture('Starting Document Capture...', timeoutInMS, getDropDown(), showBackImage, showError, useCaptureButtonWithAutoOnly, numRetry, shouldCollectGeo);
+    }
+    function startSelfie(shouldCollectGeo){
+      // Capture Live Selfie
+      StartSelfieCapture('Starting Live Photo...', timeoutInMS, getDropDown(), showLivePhoto, showError, useCaptureButtonWithAutoOnly, numRetry, shouldCollectGeo);
+    }
+    function startPassport(shouldCollectGeo){
+      // Capture Photo Page of Passport
+      StartPassportCapture('Starting Passport...', timeoutInMS, getDropDown(), showfrontImage, showError, useCaptureButtonWithAutoOnly, numRetry, shouldCollectGeo);
+    }
+
+    function startGenericDocument(shouldCollectGeo) {
+      // Capture generic documents like utility bills etc.
+      StartGenericDocumentCapture('Starting Generic Document...', timeoutInMS, getDropDown(), showfrontImage, showError, useCaptureButtonWithAutoOnly, numRetry, shouldCollectGeo);
+    }
+
+    function startSpinner(){
+      document.getElementById('main-spinner').style.display = 'block';
+    };
+
+    function hideSpinner(){
+      document.getElementById('main-spinner').style.display = 'none';
+    };
+
+    function startProcess(){
+      $('button').attr('disabled', true);
+      startSpinner();
+    };
+
+    function endProcess(){
+      $(':button').attr('disabled', false);
+      hideSpinner();
+    };
+
+  </script>
+  <!-- root is for node server -->
+  <div id="root"></div>
+  <div class="loader-wrap" id="main-spinner">
+      <div class="loader"></div>
+  </div>
+  <br />
+  <br />
+  <br />
+</body>
+</html>
